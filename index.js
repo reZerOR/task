@@ -25,6 +25,29 @@ async function run() {
     // Send a ping to confirm a successful connection
 
     // add database function here
+    const UserCollection = client.db("endgametaskManagementApp").collection("user");
+
+
+// user api
+
+app.post("/user",async(req,res)=>{
+  const user=req.body;
+  console.log(user)
+    const query={email:user.email}
+    const existingUser=await UserCollection.findOne(query)
+    if(existingUser){
+      return res.send({message:"user already exists",insertedId:null})
+    }
+    const result=await UserCollection.insertOne(user)
+    console.log(result)
+    res.send(result)
+})
+
+app.get("/user",async(req,res)=>{
+    const result=await UserCollection.find().toArray();
+    console.log(result)
+    res.send(result)
+})
 
     await client.db("admin").command({ ping: 1 });
     console.log(
