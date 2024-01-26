@@ -57,6 +57,17 @@ app.post("/create-task",async(req,res)=>{
     console.log(result)
     res.send(result)
 })
+app.get("/all-task",async(req,res)=>{
+    const result=await TasksCollection.find().toArray();
+    res.send(result)
+})
+
+
+
+
+
+
+
 
     await client.db("admin").command({ ping: 1 });
     console.log(
