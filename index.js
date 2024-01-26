@@ -2,7 +2,7 @@ const express = require("express");
 const cors = require("cors");
 const app = express();
 require("dotenv").config();
-const { MongoClient, ServerApiVersion } = require("mongodb");
+const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const port = process.env.PORT || 5000;
 
 // ready made middleware
@@ -27,7 +27,8 @@ async function run() {
 
     // add database function here
     const UserCollection = client.db("endgametaskManagementApp").collection("user");
-    const TasksCollection = client.db("endgametaskManagementApp").collection("tasks");
+
+    const TaskCollection = client.db("endgametaskManagementApp").collection("task");
 
 
 // user api
@@ -50,17 +51,100 @@ app.get("/user",async(req,res)=>{
     res.send(result)
 })
 
-// Create Task API
-app.post("/create-task",async(req,res)=>{
+
+
+// add task
+app.post("/addtask",async(req,res)=>{
   const task=req.body;
-    const result=await TasksCollection.insertOne(task)
-    console.log(result)
-    res.send(result)
+  const result=await TaskCollection.insertOne(task)
+  res.send(result)
 })
-app.get("/all-task",async(req,res)=>{
-    const result=await TasksCollection.find().toArray();
-    res.send(result)
+
+app.get("/addtask",async(req,res)=>{
+  const result=await TaskCollection.find().toArray();
+  res.send(result)
+  })
+
+  // user added task
+  app.get("/userAddedtask",async(req,res)=>{
+    console.log(req.query.email);
+    let query = {};
+    if (req.query?.email) {
+        query = { email: req.query.email }
+    }
+    const result=await TaskCollection.find(query).toArray();
+      res.send(result)
+  })
+
+// delete
+app.delete("/deletetask/:id",async(req,res)=>{
+const id=req.params.id;
+const query={_id:new ObjectId(id)}
+console.log("deleted id",query)
+const result=await TaskCollection.deleteOne(query)
+res.send(result)
 })
+
+// update task
+
+app.get("/updatetask/:id",async(req,res)=>{
+const id=req.params.id;
+console.log(id)
+const query={_id:new ObjectId(id)}
+const result=await TaskCollection.findOne(query);
+console.log("update",result)
+res.send(result)
+})
+
+app.patch("/updatetask/:id", async (req, res) => {
+const id = req.params.id;
+const filter = {
+  _id: new ObjectId(id)
+}
+const item = req.body;
+const updatedItem = {
+  $set: {
+    title:item.title,
+    description:item.description,
+    visibility:item.visibility,
+    
+  }
+}
+const result = await TaskCollection.updateOne(filter, updatedItem);
+res.send(result)
+})
+
+// update task status
+app.patch("/updateTaskStatus/:id", async (req, res) => {
+const id = req.params.id;
+const status = req.body.status;
+
+const filter = {
+  _id: new ObjectId(id)
+};
+
+const update = {
+  $set: {
+    status: status
+  }
+};
+
+const result = await TaskCollection.updateOne(filter, update);
+console.log(result)
+res.send(result);
+});
+
+// // Create Task API
+// app.post("/create-task",async(req,res)=>{
+//   const task=req.body;
+//     const result=await TasksCollection.insertOne(task)
+//     console.log(result)
+//     res.send(result)
+// })
+// app.get("/all-task",async(req,res)=>{
+//     const result=await TasksCollection.find().toArray();
+//     res.send(result)
+// })
 
 
 
