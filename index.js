@@ -9,6 +9,7 @@ const port = process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json());
 
+
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
 const client = new MongoClient(process.env.URI, {
   serverApi: {
@@ -26,7 +27,9 @@ async function run() {
 
     // add database function here
     const UserCollection = client.db("endgametaskManagementApp").collection("user");
+
     const TaskCollection = client.db("endgametaskManagementApp").collection("task");
+
 
 // user api
 
@@ -42,12 +45,12 @@ app.post("/user",async(req,res)=>{
     console.log(result)
     res.send(result)
 })
-
 app.get("/user",async(req,res)=>{
     const result=await UserCollection.find().toArray();
     console.log(result)
     res.send(result)
 })
+
 
 
 // add task
@@ -131,6 +134,22 @@ console.log(result)
 res.send(result);
 });
 
+// // Create Task API
+// app.post("/create-task",async(req,res)=>{
+//   const task=req.body;
+//     const result=await TasksCollection.insertOne(task)
+//     console.log(result)
+//     res.send(result)
+// })
+// app.get("/all-task",async(req,res)=>{
+//     const result=await TasksCollection.find().toArray();
+//     res.send(result)
+// })
+
+
+
+
+
 
 
 
@@ -149,6 +168,8 @@ run().catch(console.dir);
 app.get("/", (req, res) => {
   res.send("Taskflow server is have running");
 });
+
+
 
 // where the server port is
 app.listen(port, () => {
