@@ -147,6 +147,47 @@ res.send(result);
 // })
 
 
+//get logged in user info
+
+app.get("/currentUserInfo/:email", async(req,res)=>{
+  const email=req.params.email;
+  console.log(email);
+
+  const query={
+    email: email
+  }
+
+  const result= await UserCollection.findOne(query);
+
+  res.send(result);
+})
+
+
+// update user profile info
+
+app.put("/updateUserInfo/:email", async(req,res)=>{
+  const email=req.params.email;
+  const userInfo=req.body;
+  console.log(userInfo);
+  console.log(email);
+
+  const query={
+    email: email,
+
+  }
+
+  const updateDoc={
+    $set: {
+      displayName: userInfo?.userName,
+      photoURL: userInfo?.userImage
+    }
+  }
+
+  const result= await UserCollection.updateOne(query, updateDoc);
+
+  res.send(result);
+})
+
 
 
 
