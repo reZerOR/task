@@ -158,8 +158,14 @@ app.get("/currentUserInfo/:email", async(req,res)=>{
   }
 
   const result= await UserCollection.findOne(query);
+  if(result){
+    res.send(result);
+  }
+  else{
+    res.send({});
+  }
 
-  res.send(result);
+  
 })
 
 
@@ -168,7 +174,7 @@ app.get("/currentUserInfo/:email", async(req,res)=>{
 app.put("/updateUserInfo/:email", async(req,res)=>{
   const email=req.params.email;
   const userInfo=req.body;
-  console.log(userInfo);
+  console.log(userInfo, "gotted");
   console.log(email);
 
   const query={
@@ -179,9 +185,13 @@ app.put("/updateUserInfo/:email", async(req,res)=>{
   const updateDoc={
     $set: {
       displayName: userInfo?.userName,
-      photoURL: userInfo?.userImage
+     
     }
   }
+
+  if (userInfo.userImage) {
+    updateDoc.$set.photoURL = userInfo.userImage;
+}
 
   const result= await UserCollection.updateOne(query, updateDoc);
 
@@ -189,7 +199,23 @@ app.put("/updateUserInfo/:email", async(req,res)=>{
 })
 
 
+app.patch("/userProfile/removePhoto/:id", async(req,res)=>{
+  const userId=req.params.id;
+  console.log(userId, "got")
 
+  const query={
+    _id: new ObjectId(userId)
+  }
+  const updateDoc={
+    $set: {
+      photoURL: ""
+    }
+  }
+
+  const result = await UserCollection.updateOne(query,updateDoc);
+
+  res.send(result);
+})
 
 
 
