@@ -198,13 +198,19 @@ app.put("/updateUserInfo/:email", async(req,res)=>{
 
 // add comment====================================================
 app.post("/comment",async(req,res)=>{
-  
   const comment=req.body;
-  console.log("Hi");
+  console.log(comment);
   const result=await CommentCollection.insertOne(comment)
   res.send(result)
 })
 
+
+// get comment ==================================================
+app.get("/comment",async(req,res)=>{
+  const result=await CommentCollection.find().toArray();
+  res.send(result)
+  
+})
 
 
 
@@ -218,7 +224,7 @@ app.post("/comment",async(req,res)=>{
     // Ensures that the client will close when you finish/error
     // await client.close();
   }
-}
+} 
 run().catch(console.dir);
 
 // root api
