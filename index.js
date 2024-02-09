@@ -36,10 +36,13 @@ async function run() {
 
     // add database function here
     const UserCollection = client.db("endgametaskManagementApp").collection("user");
-
     const TaskCollection = client.db("endgametaskManagementApp").collection("task");
+
+    const CommentCollection = client.db("endgametaskManagementApp").collection("comment");
+
    
     const BoardCollection = client.db("endgametaskManagementApp").collection("board");
+
 
 
 // user api
@@ -70,11 +73,19 @@ app.post("/addtask",async(req,res)=>{
   const result=await TaskCollection.insertOne(task)
   res.send(result)
 })
-
+// get Task
 app.get("/addtask",async(req,res)=>{
   const result=await TaskCollection.find().toArray();
   res.send(result)
   })
+
+// get single task
+app.get("/task/:id", async (req, res) => {
+  const taskId = req.params.id;
+  const query = { _id: taskId };
+  const task = await TaskCollection.findOne(query);
+  res.send(task);
+});
 
   // user added task
   app.get("/userAddedtask",async(req,res)=>{
@@ -199,6 +210,23 @@ app.put("/updateUserInfo/:email", async(req,res)=>{
   res.send(result);
 })
 
+
+// add comment====================================================
+app.post("/comment",async(req,res)=>{
+  const comment=req.body;
+  console.log(comment);
+  const result=await CommentCollection.insertOne(comment)
+  res.send(result)
+})
+
+
+// get comment ==================================================
+app.get("/comment",async(req,res)=>{
+  const result=await CommentCollection.find().toArray();
+  res.send(result)
+  
+})
+
 // email invitation
 // app.post('/send-invitation', (req, res) => {
 //   const { email } = req.body;
@@ -318,7 +346,7 @@ app.get("/accept-invitation", async (req, res) => {
     // Ensures that the client will close when you finish/error
     // await client.close();
   }
-}
+} 
 run().catch(console.dir);
 
 // root api
