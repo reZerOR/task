@@ -239,8 +239,11 @@ async function run() {
     });
 
     // get comment ==================================================
-    app.get("/comment", async (req, res) => {
-      const result = await CommentCollection.find().toArray();
+    app.get("/comment/:taskId", async (req, res) => {
+   
+      const id = req.params.taskId;
+      const query = { taskId: id };
+      const result = await CommentCollection.find(query).toArray();
       res.send(result);
     });
 
