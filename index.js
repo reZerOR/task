@@ -332,6 +332,34 @@ async function run() {
       }
     });
 
+
+
+   // Due Date 
+   app.patch('/dueDate/:id', async (req, res) => {
+    try {
+      const taskId = req.params.id;
+      const dueDate = req.body.dueDate;
+      console.log('Task ID:', taskId);
+      console.log('Due Date:', dueDate);
+      
+      // Update the due date of the task in the database
+      const filter = { _id: new ObjectId(taskId) };
+      const update = { $set: { dueDate: dueDate } };
+      const result = await TaskCollection.updateOne(filter, update);
+      
+      console.log('Update Result:', result);
+      res.send(result);
+    } catch (err) {
+      console.error('Error updating due date:', err);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  });
+  
+
+
+
+
+
     await client.db("admin").command({ ping: 1 });
     console.log(
       "Pinged your deployment. You successfully connected to MongoDB!"
