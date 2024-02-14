@@ -285,15 +285,19 @@ async function run() {
       res.send(result);
     });
 
-    app.post("/send-invitation", async (req, res) => {
+    app.post("/send-invitation/:boardId", async (req, res) => {
       const { from, to } = req.body;
+      const boardId=req.params.boardId;
+
+      console.log(boardId, "from send invi");
 
       try {
         // Generate a unique token
         const token = generateUniqueToken();
 
         // Include the token in the invitation link
-        const invitationLink = `https://taskflow.com/accept-invitation?token=${token}`;
+        const invitationLink = `http://localhost:5173/accept-invitation/${boardId}/${token}`;
+
 
         // Send the invitation with the generated token
         sendInvitation(from, to, invitationLink);
@@ -306,28 +310,72 @@ async function run() {
       }
     });
 
-    app.get("/accept-invitation", async (req, res) => {
-      try {
-        const { token } = req.query;
-        console.log("token", token);
-        // Validate the token and extract the user's email
-        const userEmail = validateAndExtractEmailFromToken(token);
+    // app.get("/accept-invitation", async (req, res) => {
+    //   try {
+    //     const { token, boardId } = req.query;
+    //     console.log("token", token);
+    //     console.log("boardid frm accept invi", boardId);
+    //     // Validate the token and extract the user's email
+    //     // const userEmail = validateAndExtractEmailFromToken(token);
 
-        // Perform any necessary operations (e.g., update user status)
-        // For example, you might update the user's status in the database
-        // const result = await updateUserStatus(userEmail, 'accepted');
+    //     // Perform any necessary operations (e.g., update user status)
+    //     // For example, you might update the user's status in the database
+    //     // const result = await updateUserStatus(userEmail, 'accepted');
 
-        // Optionally, you can redirect the user to a success page
-        res.render("MailAcceptINvitation");
+    //     // Optionally, you can redirect the user to a success page
+    //     // res.render("MailAcceptINvitation");
 
-        // Alternatively, you can send a JSON response indicating success
-        // res.json({ message: 'Invitation accepted successfully!' });
-      } catch (error) {
-        console.error("Error accepting invitation:", error);
-        // Handle the error, e.g., redirect to an error page or send an error response
-        res.status(500).json({ error: "Error accepting invitation" });
+    //     // Alternatively, you can send a JSON response indicating success
+    //     // res.json({ message: 'Invitation accepted successfully!' });
+    //   } catch (error) {
+    //     console.error("Error accepting invitation:", error);
+    //     // Handle the error, e.g., redirect to an error page or send an error response
+    //     res.status(500).json({ error: "Error accepting invitation" });
+    //   }
+    // });
+
+    app.patch("/addMember/:boardId/:email", async(req,res)=>{
+      const boardId= req.params.boardId;
+      const email= req.params.email;
+
+      console.log(boardId, email, "frommmmmmmmmmmmmmmmmm adsadas");
+
+      const query={
+        _id: new ObjectId(boardId)
       }
-    });
+
+      const board = await BoardCollection.findOne(query);
+
+      if (!board) {
+          return res.status(404).send("Board not found");
+      }
+
+      let teamMemberArray = [];
+      if (board.teamMember) {
+          // If teamMember is already a string, convert it into an array
+          if(board.teamMember.includes(email)){
+            console.log("already email exists")
+            return;
+          }
+          else{
+            teamMemberArray = [...board.teamMember,email];
+          }
+         
+      }
+      else{
+        teamMemberArray.push(email); // Add new email to the array
+      }
+  
+      
+  
+      const updateDoc = {
+          $set: { teamMember: teamMemberArray } // Set teamMember as the new array
+      };
+
+      const result= await BoardCollection.updateOne(query,updateDoc);
+      res.send(result);
+
+    })
 
     await client.db("admin").command({ ping: 1 });
     console.log(
