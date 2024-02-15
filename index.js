@@ -107,6 +107,7 @@ async function run() {
       const query = { _id: new ObjectId(id) };
       console.log("deleted id", query);
       const result = await TaskCollection.deleteOne(query);
+      
       res.send(result);
     });
 
