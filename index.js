@@ -266,7 +266,12 @@ async function run() {
     app.get("/getBoard/:email", async (req, res) => {
       try {
         const email = req.params.email;
-        const query = { email: email };
+        const query = {
+          $or: [
+            { email: email },
+            { teamMember: { $elemMatch: { $eq: email } } }
+          ]
+        };
         const result = await BoardCollection.find(query).toArray();
 
         console.log(result);
@@ -310,29 +315,6 @@ async function run() {
       }
     });
 
-    // app.get("/accept-invitation", async (req, res) => {
-    //   try {
-    //     const { token, boardId } = req.query;
-    //     console.log("token", token);
-    //     console.log("boardid frm accept invi", boardId);
-    //     // Validate the token and extract the user's email
-    //     // const userEmail = validateAndExtractEmailFromToken(token);
-
-    //     // Perform any necessary operations (e.g., update user status)
-    //     // For example, you might update the user's status in the database
-    //     // const result = await updateUserStatus(userEmail, 'accepted');
-
-    //     // Optionally, you can redirect the user to a success page
-    //     // res.render("MailAcceptINvitation");
-
-    //     // Alternatively, you can send a JSON response indicating success
-    //     // res.json({ message: 'Invitation accepted successfully!' });
-    //   } catch (error) {
-    //     console.error("Error accepting invitation:", error);
-    //     // Handle the error, e.g., redirect to an error page or send an error response
-    //     res.status(500).json({ error: "Error accepting invitation" });
-    //   }
-    // });
 
     app.patch("/addMember/:boardId/:email", async(req,res)=>{
       const boardId= req.params.boardId;
@@ -374,6 +356,32 @@ async function run() {
 
       const result= await BoardCollection.updateOne(query,updateDoc);
       res.send(result);
+
+    })
+
+
+    app.get("/currentUserMail/:email", async(req,res)=>{
+      const email=req.params.email;
+
+      const query={
+        email: email
+      }
+
+      let isAdmin= false;
+
+      const result= await BoardCollection.find(query).toArray();
+      console.log(result, "result from isAdminnnn")
+
+      if(result.length > 0){
+        isAdmin=true;
+        res.send({isAdmin})
+      }
+      else{
+        
+        res.send({isAdmin})
+      }
+
+
 
     })
 
