@@ -239,8 +239,11 @@ async function run() {
     });
 
     // get comment ==================================================
-    app.get("/comment", async (req, res) => {
-      const result = await CommentCollection.find().toArray();
+    app.get("/comment/:taskId", async (req, res) => {
+   
+      const id = req.params.taskId;
+      const query = { taskId: id };
+      const result = await CommentCollection.find(query).toArray();
       res.send(result);
     });
 
@@ -328,6 +331,34 @@ async function run() {
         res.status(500).json({ error: "Error accepting invitation" });
       }
     });
+
+
+
+   // Due Date 
+   app.patch('/dueDate/:id', async (req, res) => {
+    try {
+      const taskId = req.params.id;
+      const dueDate = req.body.dueDate;
+      console.log('Task ID:', taskId);
+      console.log('Due Date:', dueDate);
+      
+      // Update the due date of the task in the database
+      const filter = { _id: new ObjectId(taskId) };
+      const update = { $set: { dueDate: dueDate } };
+      const result = await TaskCollection.updateOne(filter, update);
+      
+      console.log('Update Result:', result);
+      res.send(result);
+    } catch (err) {
+      console.error('Error updating due date:', err);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  });
+  
+
+
+
+
 
     await client.db("admin").command({ ping: 1 });
     console.log(
