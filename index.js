@@ -49,6 +49,9 @@ async function run() {
     const BoardCollection = client
       .db("endgametaskManagementApp")
       .collection("board");
+    const FileCollection = client
+      .db("endgametaskManagementApp")
+      .collection("file");
 
     // user api
 
@@ -258,7 +261,7 @@ async function run() {
     //   // Respond to the client
     //   res.json({ message: 'Invitation sent successfully!' });
     // });
-
+ 
     // create board
     app.post("/createBoard", async (req, res) => {
       const board = req.body;
