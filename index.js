@@ -107,7 +107,7 @@ async function run() {
       const query = { _id: new ObjectId(id) };
       console.log("deleted id", query);
       const result = await TaskCollection.deleteOne(query);
-      
+
       res.send(result);
     });
 
@@ -159,19 +159,7 @@ async function run() {
       res.send(result);
     });
 
-    // // Create Task API
-    // app.post("/create-task",async(req,res)=>{
-    //   const task=req.body;
-    //     const result=await TasksCollection.insertOne(task)
-    //     console.log(result)
-    //     res.send(result)
-    // })
-    // app.get("/all-task",async(req,res)=>{
-    //     const result=await TasksCollection.find().toArray();
-    //     res.send(result)
-    // })
-
-    //get logged in user info
+    
 
     app.get("/currentUserInfo/:email", async (req, res) => {
       const email = req.params.email;
@@ -282,6 +270,8 @@ async function run() {
         res.status(500).json({ error: "Internal Server Error" });
       }
     });
+
+
     app.get("/singleboard/:id", async (req, res) => {
       const id = req.params.id;
       console.log(id);
