@@ -238,18 +238,6 @@ async function run() {
       const result = await CommentCollection.find(query).toArray();
       res.send(result);
     });
-
-    // email invitation
-    // app.post('/send-invitation', (req, res) => {
-    //   const { email } = req.body;
-
-    //   const invitationLink = `https://taskflow.com/accept-invitation?token=${generateUniqueToken()}`;
-
-    //   sendInvitation(email, invitationLink);
-
-    //   // Respond to the client
-    //   res.json({ message: 'Invitation sent successfully!' });
-    // });
  
     // create board
     app.post("/createBoard", async (req, res) => {
@@ -406,10 +394,170 @@ async function run() {
   });
   
 
+  // add task into the individual board 
+  app.patch("/addTaskToBoard/:boardId", async (req, res) => {
+    const boardId = req.params.boardId;
+    const task = req.body;
+
+    console.log(boardId, task, "from add task into the individual board");
+
+    const query = {
+        _id: new ObjectId(boardId)
+    };
+
+    const board = await BoardCollection.findOne(query);
+
+    if (!board) {
+        return res.status(404).send("Board not found");
+    }
+
+    // Ensure each task has a unique ID
+    const taskId = new ObjectId();
+    const taskWithId = { ...task, _id: taskId };
+
+    let taskArray = [];
+    if (board.tasks) {
+        // If tasks array already exists, add the new task to it
+        taskArray = [...board.tasks, taskWithId];
+    } else {
+        // If tasks array doesn't exist, create a new array with the task
+        taskArray.push(taskWithId);
+    }
+
+    const updateDoc = {
+        $set: { tasks: taskArray }
+    };
+
+    const result = await BoardCollection.updateOne(query, updateDoc);
+    res.send(result);
+});
+
+// get task from individual board
+app.get('/boards/:boardId/tasks', async (req, res) => {
+ 
+    const boardId = req.params.boardId;
+    const query = {
+      _id: new ObjectId(boardId)
+  };
+    // Find the board by ID
+    const board = await BoardCollection.findOne(query);
+// Extract and send tasks
+    const tasks = board.tasks || [];
+    res.json({ tasks })
+    // .send(tasks);
+ 
+});
+
+// get task id from board
+app.get("/boardtask/:id", async (req, res) => {
+
+  const taskId = req.params.id;
+  
+  // Find the task by ID
+  const task = await BoardCollection.findOne({ "tasks._id": taskId });
+
+  if (!task) {
+    return res.status(404).json({ error: 'Task not found' });
+  }
+
+  // Extract the specific task based on the ID
+  const specificTask = task.tasks.find(t => t._id.toString() === taskId);
+
+  if (!specificTask) {
+    return res.status(404).json({ error: 'Specific task not found' });
+  }
+
+  res.send(specificTask);
+
+});
+
+// delete task from the board
+// app.delete("/deletetaskFromBoard/:id", async (req, res) => {
+//   const taskId = req.params.id;
+//   console.log("deleted id from board", taskId);
+//   // Find the task by ID
+//   const task = await BoardCollection.findOne({ "tasks._id": taskId });
+
+//   if (!task) {
+//     return res.status(404).json({ error: 'Task not found' });
+//   }
+
+//   // Extract the specific task based on the ID
+//   const specificTask = task.tasks.find(t => t._id.toString() === taskId);
+//   console.log("deleted id from board", specificTask);
+//   const result = await BoardCollection.deleteOne(specificTask);
+
+//   res.send(result);
+// });
+app.delete("/deletetaskFromBoard/:id", async (req, res) => {
+  const taskId = req.params.id;
+  console.log("from delete task from board",taskId)
+ 
+    // Update the board document to pull the task with the given ID
+    const query = { "tasks._id": new ObjectId(taskId) };
+    console.log("Query:", query);
+    
+    const result = await BoardCollection.updateOne(
+      query,
+      { $pull: { tasks: { _id: new ObjectId(taskId) } } }
+    );
+ console.log("from delete task from board",result)
+    if (result.nModified > 0) {
+      res.status(200).json({ message: 'Task deleted successfully' });
+    } else {
+      res.status(404).json({ error: 'Task not found' });
+    }
+res.send(result)
+});
+
+// update task status in the board
+app.patch("/updateStatusInBoard/:id", async (req, res) => {
+  const id = req.params.id;
+  const status = req.body.status;
+
+  const filter = {
+    "tasks._id": new ObjectId(id),
+  };
+
+  const update = {
+    $set: {
+      "tasks.$.status": status,
+    },
+  };
+
+    const result = await BoardCollection.updateOne(filter, update);
+console.log("from update status from board",result)
+  res.send(result)
+});
 
 
+ // update task in the board
 
+ app.get("/updatetaskInTheBoard/:id", async (req, res) => {
+  const id = req.params.id;
+  console.log(id);
+  const query = {"tasks._id": new ObjectId(id) };
+  const result = await BoardCollection.findOne(query);
+  console.log("update", result);
+  res.send(result);
+});
 
+    app.patch("/updatetaskInTheBoard/:id", async (req, res) => {
+      const id = req.params.id;
+      const filter = {
+        "tasks._id": new ObjectId(id),
+      };
+      const item = req.body;
+      const updatedItem = {
+        $set: {
+          "tasks.$.title": item.title,
+          "tasks.$.description": item.description,
+          "tasks.$.visibility": item.visibility,
+        },
+      };
+      const result = await BoardCollection.updateOne(filter, updatedItem);
+      res.send(result);
+    });
     await client.db("admin").command({ ping: 1 });
     console.log(
       "Pinged your deployment. You successfully connected to MongoDB!"
