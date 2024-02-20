@@ -507,7 +507,27 @@ app.delete("/deletetaskFromBoard/:id", async (req, res) => {
     } else {
       res.status(404).json({ error: 'Task not found' });
     }
+res.send(result)
+});
 
+// update task status in the board
+app.patch("/updateStatusInBoard/:id", async (req, res) => {
+  const id = req.params.id;
+  const status = req.body.status;
+
+  const filter = {
+    "tasks._id": new ObjectId(id),
+  };
+
+  const update = {
+    $set: {
+      "tasks.$.status": status,
+    },
+  };
+
+    const result = await BoardCollection.updateOne(filter, update);
+console.log("from update status from board",result)
+  res.send(result)
 });
 
     await client.db("admin").command({ ping: 1 });
