@@ -472,14 +472,44 @@ app.get("/boardtask/:id", async (req, res) => {
 });
 
 // delete task from the board
-app.delete("/deletetask/:id", async (req, res) => {
-  const id = req.params.id;
-  const query = { _id: new ObjectId(id) };
-  console.log("deleted id", query);
-  const result = await TaskCollection.deleteOne(query);
+// app.delete("/deletetaskFromBoard/:id", async (req, res) => {
+//   const taskId = req.params.id;
+//   console.log("deleted id from board", taskId);
+//   // Find the task by ID
+//   const task = await BoardCollection.findOne({ "tasks._id": taskId });
 
-  res.send(result);
+//   if (!task) {
+//     return res.status(404).json({ error: 'Task not found' });
+//   }
+
+//   // Extract the specific task based on the ID
+//   const specificTask = task.tasks.find(t => t._id.toString() === taskId);
+//   console.log("deleted id from board", specificTask);
+//   const result = await BoardCollection.deleteOne(specificTask);
+
+//   res.send(result);
+// });
+app.delete("/deletetaskFromBoard/:id", async (req, res) => {
+  const taskId = req.params.id;
+  console.log("from delete task from board",taskId)
+ 
+    // Update the board document to pull the task with the given ID
+    const query = { "tasks._id": new ObjectId(taskId) };
+    console.log("Query:", query);
+    
+    const result = await BoardCollection.updateOne(
+      query,
+      { $pull: { tasks: { _id: new ObjectId(taskId) } } }
+    );
+ console.log("from delete task from board",result)
+    if (result.nModified > 0) {
+      res.status(200).json({ message: 'Task deleted successfully' });
+    } else {
+      res.status(404).json({ error: 'Task not found' });
+    }
+
 });
+
     await client.db("admin").command({ ping: 1 });
     console.log(
       "Pinged your deployment. You successfully connected to MongoDB!"
