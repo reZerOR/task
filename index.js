@@ -448,7 +448,38 @@ app.get('/boards/:boardId/tasks', async (req, res) => {
  
 });
 
+// get task id from board
+app.get("/boardtask/:id", async (req, res) => {
 
+  const taskId = req.params.id;
+  
+  // Find the task by ID
+  const task = await BoardCollection.findOne({ "tasks._id": taskId });
+
+  if (!task) {
+    return res.status(404).json({ error: 'Task not found' });
+  }
+
+  // Extract the specific task based on the ID
+  const specificTask = task.tasks.find(t => t._id.toString() === taskId);
+
+  if (!specificTask) {
+    return res.status(404).json({ error: 'Specific task not found' });
+  }
+
+  res.send(specificTask);
+
+});
+
+// delete task from the board
+app.delete("/deletetask/:id", async (req, res) => {
+  const id = req.params.id;
+  const query = { _id: new ObjectId(id) };
+  console.log("deleted id", query);
+  const result = await TaskCollection.deleteOne(query);
+
+  res.send(result);
+});
     await client.db("admin").command({ ping: 1 });
     console.log(
       "Pinged your deployment. You successfully connected to MongoDB!"
