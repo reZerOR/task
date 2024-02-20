@@ -238,18 +238,6 @@ async function run() {
       const result = await CommentCollection.find(query).toArray();
       res.send(result);
     });
-
-    // email invitation
-    // app.post('/send-invitation', (req, res) => {
-    //   const { email } = req.body;
-
-    //   const invitationLink = `https://taskflow.com/accept-invitation?token=${generateUniqueToken()}`;
-
-    //   sendInvitation(email, invitationLink);
-
-    //   // Respond to the client
-    //   res.json({ message: 'Invitation sent successfully!' });
-    // });
  
     // create board
     app.post("/createBoard", async (req, res) => {
@@ -406,6 +394,43 @@ async function run() {
   });
   
 
+  // add task into the individual board 
+  app.patch("/addTaskToBoard/:boardId", async (req, res) => {
+    const boardId = req.params.boardId;
+    const task = req.body;
+
+    console.log(boardId, task, "from add task into the individual board");
+
+    const query = {
+        _id: new ObjectId(boardId)
+    };
+
+    const board = await BoardCollection.findOne(query);
+
+    if (!board) {
+        return res.status(404).send("Board not found");
+    }
+
+    // Ensure each task has a unique ID
+    const taskId = new ObjectId();
+    const taskWithId = { ...task, _id: taskId };
+
+    let taskArray = [];
+    if (board.tasks) {
+        // If tasks array already exists, add the new task to it
+        taskArray = [...board.tasks, taskWithId];
+    } else {
+        // If tasks array doesn't exist, create a new array with the task
+        taskArray.push(taskWithId);
+    }
+
+    const updateDoc = {
+        $set: { tasks: taskArray }
+    };
+
+    const result = await BoardCollection.updateOne(query, updateDoc);
+    res.send(result);
+});
 
 
 
