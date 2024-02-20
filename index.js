@@ -432,7 +432,21 @@ async function run() {
     res.send(result);
 });
 
-
+// get task from individual board
+app.get('/boards/:boardId/tasks', async (req, res) => {
+ 
+    const boardId = req.params.boardId;
+    const query = {
+      _id: new ObjectId(boardId)
+  };
+    // Find the board by ID
+    const board = await BoardCollection.findOne(query);
+// Extract and send tasks
+    const tasks = board.tasks || [];
+    res.json({ tasks })
+    // .send(tasks);
+ 
+});
 
 
     await client.db("admin").command({ ping: 1 });
