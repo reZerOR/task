@@ -530,6 +530,34 @@ console.log("from update status from board",result)
   res.send(result)
 });
 
+
+ // update task in the board
+
+ app.get("/updatetaskInTheBoard/:id", async (req, res) => {
+  const id = req.params.id;
+  console.log(id);
+  const query = {"tasks._id": new ObjectId(id) };
+  const result = await BoardCollection.findOne(query);
+  console.log("update", result);
+  res.send(result);
+});
+
+    app.patch("/updatetaskInTheBoard/:id", async (req, res) => {
+      const id = req.params.id;
+      const filter = {
+        "tasks._id": new ObjectId(id),
+      };
+      const item = req.body;
+      const updatedItem = {
+        $set: {
+          "tasks.$.title": item.title,
+          "tasks.$.description": item.description,
+          "tasks.$.visibility": item.visibility,
+        },
+      };
+      const result = await BoardCollection.updateOne(filter, updatedItem);
+      res.send(result);
+    });
     await client.db("admin").command({ ping: 1 });
     console.log(
       "Pinged your deployment. You successfully connected to MongoDB!"
