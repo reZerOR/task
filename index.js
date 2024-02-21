@@ -162,8 +162,6 @@ async function run() {
       res.send(result);
     });
 
-    
-
     app.get("/currentUserInfo/:email", async (req, res) => {
       const email = req.params.email;
       console.log(email);
@@ -232,7 +230,6 @@ async function run() {
 
     // get comment ==================================================
     app.get("/comment/:taskId", async (req, res) => {
-   
       const id = req.params.taskId;
       const query = { taskId: id };
       const result = await CommentCollection.find(query).toArray();
@@ -250,7 +247,7 @@ async function run() {
     //   // Respond to the client
     //   res.json({ message: 'Invitation sent successfully!' });
     // });
- 
+
     // create board
     app.post("/createBoard", async (req, res) => {
       const board = req.body;
@@ -264,8 +261,8 @@ async function run() {
         const query = {
           $or: [
             { email: email },
-            { teamMember: { $elemMatch: { $eq: email } } }
-          ]
+            { teamMember: { $elemMatch: { $eq: email } } },
+          ],
         };
         const result = await BoardCollection.find(query).toArray();
 
@@ -276,7 +273,6 @@ async function run() {
         res.status(500).json({ error: "Internal Server Error" });
       }
     });
-
 
     app.get("/singleboard/:id", async (req, res) => {
       const id = req.params.id;
@@ -289,7 +285,7 @@ async function run() {
 
     app.post("/send-invitation/:boardId", async (req, res) => {
       const { from, to } = req.body;
-      const boardId=req.params.boardId;
+      const boardId = req.params.boardId;
 
       console.log(boardId, "from send invi");
 
@@ -298,8 +294,7 @@ async function run() {
         const token = generateUniqueToken();
 
         // Include the token in the invitation link
-        const invitationLink = `http://localhost:5173/accept-invitation/${boardId}/${token}`;
-
+        const invitationLink = `https://task-management-814.web.app/accept-invitation/${boardId}/${token}`;
 
         // Send the invitation with the generated token
         sendInvitation(from, to, invitationLink);
@@ -312,103 +307,83 @@ async function run() {
       }
     });
 
-
-    app.patch("/addMember/:boardId/:email", async(req,res)=>{
-      const boardId= req.params.boardId;
-      const email= req.params.email;
+    app.patch("/addMember/:boardId/:email", async (req, res) => {
+      const boardId = req.params.boardId;
+      const email = req.params.email;
 
       console.log(boardId, email, "frommmmmmmmmmmmmmmmmm adsadas");
 
-      const query={
-        _id: new ObjectId(boardId)
-      }
+      const query = {
+        _id: new ObjectId(boardId),
+      };
 
       const board = await BoardCollection.findOne(query);
 
       if (!board) {
-          return res.status(404).send("Board not found");
+        return res.status(404).send("Board not found");
       }
 
       let teamMemberArray = [];
       if (board.teamMember) {
-          // If teamMember is already a string, convert it into an array
-          if(board.teamMember.includes(email)){
-            console.log("already email exists")
-            return;
-          }
-          else{
-            teamMemberArray = [...board.teamMember,email];
-          }
-         
-      }
-      else{
+        // If teamMember is already a string, convert it into an array
+        if (board.teamMember.includes(email)) {
+          console.log("already email exists");
+          return;
+        } else {
+          teamMemberArray = [...board.teamMember, email];
+        }
+      } else {
         teamMemberArray.push(email); // Add new email to the array
       }
-  
-      
-  
+
       const updateDoc = {
-          $set: { teamMember: teamMemberArray } // Set teamMember as the new array
+        $set: { teamMember: teamMemberArray }, // Set teamMember as the new array
       };
 
-      const result= await BoardCollection.updateOne(query,updateDoc);
+      const result = await BoardCollection.updateOne(query, updateDoc);
       res.send(result);
+    });
 
-    })
+    app.get("/currentUserMail/:email", async (req, res) => {
+      const email = req.params.email;
 
+      const query = {
+        email: email,
+      };
 
-    app.get("/currentUserMail/:email", async(req,res)=>{
-      const email=req.params.email;
+      let isAdmin = false;
 
-      const query={
-        email: email
+      const result = await BoardCollection.find(query).toArray();
+      console.log(result, "result from isAdminnnn");
+
+      if (result.length > 0) {
+        isAdmin = true;
+        res.send({ isAdmin });
+      } else {
+        res.send({ isAdmin });
       }
+    });
 
-      let isAdmin= false;
+    // Due Date
+    app.patch("/dueDate/:id", async (req, res) => {
+      try {
+        const taskId = req.params.id;
+        const dueDate = req.body.dueDate;
+        console.log("Task ID:", taskId);
+        console.log("Due Date:", dueDate);
 
-      const result= await BoardCollection.find(query).toArray();
-      console.log(result, "result from isAdminnnn")
+        // Update the due date of the task in the database
+        const filter = { _id: new ObjectId(taskId) };
+        const update = { $set: { dueDate: dueDate } };
+        const result = await TaskCollection.updateOne(filter, update);
 
-      if(result.length > 0){
-        isAdmin=true;
-        res.send({isAdmin})
+        console.log("Update Result:", result);
+        res.send(result);
+      } catch (err) {
+        console.error("Error updating due date:", err);
+        res.status(500).json({ error: "Internal server error" });
       }
-      else{
-        
-        res.send({isAdmin})
-      }
-
-
-
-    })
-
-
-
-   // Due Date 
-   app.patch('/dueDate/:id', async (req, res) => {
-    try {
-      const taskId = req.params.id;
-      const dueDate = req.body.dueDate;
-      console.log('Task ID:', taskId);
-      console.log('Due Date:', dueDate);
-      
-      // Update the due date of the task in the database
-      const filter = { _id: new ObjectId(taskId) };
-      const update = { $set: { dueDate: dueDate } };
-      const result = await TaskCollection.updateOne(filter, update);
-      
-      console.log('Update Result:', result);
-      res.send(result);
-    } catch (err) {
-      console.error('Error updating due date:', err);
-      res.status(500).json({ error: 'Internal server error' });
-    }
-  });
-  
-
-
-
-
+    });
 
     await client.db("admin").command({ ping: 1 });
     console.log(
