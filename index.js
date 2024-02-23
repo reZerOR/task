@@ -560,6 +560,12 @@ console.log("from update status from board",result)
     });
 
     app.post("/create-payment-intent", async (req, res) => {
+      const { price } = req.body;
+
+      const amount = parseInt(price * 100);
+
+      console.log(price, amount);
+
 
   })
   
