@@ -8,6 +8,8 @@ const {
 } = require("./generateUniqueToken");
 require("dotenv").config();
 
+const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
+
 const app = express();
 
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
