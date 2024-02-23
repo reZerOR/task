@@ -629,7 +629,16 @@ async function run() {
     })
 
     app.patch("/decreaseLimit/:email",async(req,res)=>{
-      
+      const email=req.params.email;
+      const query={email: email};
+
+      const updateDoc = {
+        $inc: {
+            currentPackageLimit: -1,
+        }
+    };
+
+    const result = await userCollections.updateOne(query, updateDoc);
     })
 
     await client.db("admin").command({ ping: 1 });
