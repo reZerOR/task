@@ -566,7 +566,11 @@ console.log("from update status from board",result)
 
       console.log(price, amount);
 
+      const paymentIntent = await stripe.paymentIntents.create({
+          
+      });
 
+     
   })
   
     await client.db("admin").command({ ping: 1 });
