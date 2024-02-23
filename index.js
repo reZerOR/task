@@ -573,7 +573,9 @@ console.log("from update status from board",result)
           payment_method_types: ["card"],
       });
 
-     
+      res.send({
+          clientSecret: paymentIntent.client_secret,
+      })
   })
   
     await client.db("admin").command({ ping: 1 });
