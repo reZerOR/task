@@ -558,6 +558,11 @@ console.log("from update status from board",result)
       const result = await BoardCollection.updateOne(filter, updatedItem);
       res.send(result);
     });
+
+    app.post("/create-payment-intent", async (req, res) => {
+
+  })
+  
     await client.db("admin").command({ ping: 1 });
     console.log(
       "Pinged your deployment. You successfully connected to MongoDB!"
