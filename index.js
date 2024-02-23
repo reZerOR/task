@@ -567,7 +567,10 @@ console.log("from update status from board",result)
       console.log(price, amount);
 
       const paymentIntent = await stripe.paymentIntents.create({
-          
+          amount: amount,
+          currency: "usd",
+
+          payment_method_types: ["card"],
       });
 
      
