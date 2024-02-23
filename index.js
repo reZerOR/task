@@ -638,7 +638,9 @@ async function run() {
         }
     };
 
-    const result = await userCollections.updateOne(query, updateDoc);
+    const result = await UserCollection.updateOne(query, updateDoc);
+
+    res.send(result);
     })
 
     await client.db("admin").command({ ping: 1 });
