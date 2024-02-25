@@ -501,12 +501,12 @@ app.delete("/deletetaskFromBoard/:id", async (req, res) => {
       query,
       { $pull: { tasks: { _id: new ObjectId(taskId) } } }
     );
- console.log("from delete task from board",result)
-    if (result.nModified > 0) {
-      res.status(200).json({ message: 'Task deleted successfully' });
-    } else {
-      res.status(404).json({ error: 'Task not found' });
-    }
+//  console.log("from delete task from board",result)
+//     if (result.nModified > 0) {
+//       res.status(200).json({ message: 'Task deleted successfully' });
+//     } else {
+//       res.status(404).json({ error: 'Task not found' });
+//     }
 res.send(result)
 });
 
