@@ -8,6 +8,9 @@ const {
 } = require("./generateUniqueToken");
 require("dotenv").config();
 
+const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
+// console.log(stripe);
+
 const app = express();
 
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
@@ -162,7 +165,7 @@ async function run() {
       res.send(result);
     });
 
-    
+
 
     app.get("/currentUserInfo/:email", async (req, res) => {
       const email = req.params.email;
@@ -232,13 +235,13 @@ async function run() {
 
     // get comment ==================================================
     app.get("/comment/:taskId", async (req, res) => {
-   
+
       const id = req.params.taskId;
       const query = { taskId: id };
       const result = await CommentCollection.find(query).toArray();
       res.send(result);
     });
- 
+
     // create board
     app.post("/createBoard", async (req, res) => {
       const board = req.body;
@@ -277,7 +280,7 @@ async function run() {
 
     app.post("/send-invitation/:boardId", async (req, res) => {
       const { from, to } = req.body;
-      const boardId=req.params.boardId;
+      const boardId = req.params.boardId;
 
       console.log(boardId, "from send invi");
 
@@ -301,69 +304,69 @@ async function run() {
     });
 
 
-    app.patch("/addMember/:boardId/:email", async(req,res)=>{
-      const boardId= req.params.boardId;
-      const email= req.params.email;
+    app.patch("/addMember/:boardId/:email", async (req, res) => {
+      const boardId = req.params.boardId;
+      const email = req.params.email;
 
       console.log(boardId, email, "frommmmmmmmmmmmmmmmmm adsadas");
 
-      const query={
+      const query = {
         _id: new ObjectId(boardId)
       }
 
       const board = await BoardCollection.findOne(query);
 
       if (!board) {
-          return res.status(404).send("Board not found");
+        return res.status(404).send("Board not found");
       }
 
       let teamMemberArray = [];
       if (board.teamMember) {
-          // If teamMember is already a string, convert it into an array
-          if(board.teamMember.includes(email)){
-            console.log("already email exists")
-            return;
-          }
-          else{
-            teamMemberArray = [...board.teamMember,email];
-          }
-         
+        // If teamMember is already a string, convert it into an array
+        if (board.teamMember.includes(email)) {
+          console.log("already email exists")
+          return;
+        }
+        else {
+          teamMemberArray = [...board.teamMember, email];
+        }
+
       }
-      else{
+      else {
         teamMemberArray.push(email); // Add new email to the array
       }
-  
-      
-  
+
+
+
       const updateDoc = {
-          $set: { teamMember: teamMemberArray } // Set teamMember as the new array
+        $set: { teamMember: teamMemberArray } // Set teamMember as the new array
       };
 
-      const result= await BoardCollection.updateOne(query,updateDoc);
+      const result = await BoardCollection.updateOne(query, updateDoc);
       res.send(result);
 
     })
 
 
-    app.get("/currentUserMail/:email", async(req,res)=>{
-      const email=req.params.email;
+    app.get("/currentUserMail/:email", async (req, res) => {
+      const email = req.params.email;
 
-      const query={
+      const query = {
         email: email
       }
 
-      let isAdmin= false;
+      let isAdmin = false;
 
-      const result= await BoardCollection.find(query).toArray();
+      const result = await BoardCollection.find(query).toArray();
       console.log(result, "result from isAdminnnn")
 
-      if(result.length > 0){
-        isAdmin=true;
-        res.send({isAdmin})
+      if (result.length > 0) {
+        isAdmin = true;
+        res.send({ isAdmin })
       }
-      else{
-        
-        res.send({isAdmin})
+      else {
+
+        res.send({ isAdmin })
       }
 
 
@@ -372,120 +375,120 @@ async function run() {
 
 
 
-   // Due Date 
-   app.patch('/dueDate/:id', async (req, res) => {
-    try {
-      const taskId = req.params.id;
-      const dueDate = req.body.dueDate;
-      console.log('Task ID:', taskId);
-      console.log('Due Date:', dueDate);
-      
-      // Update the due date of the task in the database
-      const filter = { _id: new ObjectId(taskId) };
-      const update = { $set: { dueDate: dueDate } };
-      const result = await TaskCollection.updateOne(filter, update);
-      
-      console.log('Update Result:', result);
-      res.send(result);
-    } catch (err) {
-      console.error('Error updating due date:', err);
-      res.status(500).json({ error: 'Internal server error' });
-    }
-  });
-  
+    // Due Date 
+    app.patch('/dueDate/:id', async (req, res) => {
+      try {
+        const taskId = req.params.id;
+        const dueDate = req.body.dueDate;
+        console.log('Task ID:', taskId);
+        console.log('Due Date:', dueDate);
 
-  // add task into the individual board 
-  app.patch("/addTaskToBoard/:boardId", async (req, res) => {
-    const boardId = req.params.boardId;
-    const task = req.body;
+        // Update the due date of the task in the database
+        const filter = { _id: new ObjectId(taskId) };
+        const update = { $set: { dueDate: dueDate } };
+        const result = await TaskCollection.updateOne(filter, update);
 
-    console.log(boardId, task, "from add task into the individual board");
+        console.log('Update Result:', result);
+        res.send(result);
+      } catch (err) {
+        console.error('Error updating due date:', err);
+        res.status(500).json({ error: 'Internal server error' });
+      }
+    });
 
-    const query = {
+
+    // add task into the individual board 
+    app.patch("/addTaskToBoard/:boardId", async (req, res) => {
+      const boardId = req.params.boardId;
+      const task = req.body;
+
+      console.log(boardId, task, "from add task into the individual board");
+
+      const query = {
         _id: new ObjectId(boardId)
-    };
+      };
 
-    const board = await BoardCollection.findOne(query);
+      const board = await BoardCollection.findOne(query);
 
-    if (!board) {
+      if (!board) {
         return res.status(404).send("Board not found");
-    }
+      }
 
-    // Ensure each task has a unique ID
-    const taskId = new ObjectId();
-    const taskWithId = { ...task, _id: taskId };
+      // Ensure each task has a unique ID
+      const taskId = new ObjectId();
+      const taskWithId = { ...task, _id: taskId };
 
-    let taskArray = [];
-    if (board.tasks) {
+      let taskArray = [];
+      if (board.tasks) {
         // If tasks array already exists, add the new task to it
         taskArray = [...board.tasks, taskWithId];
-    } else {
+      } else {
         // If tasks array doesn't exist, create a new array with the task
         taskArray.push(taskWithId);
-    }
+      }
 
-    const updateDoc = {
+      const updateDoc = {
         $set: { tasks: taskArray }
-    };
+      };
 
-    const result = await BoardCollection.updateOne(query, updateDoc);
-    res.send(result);
-});
+      const result = await BoardCollection.updateOne(query, updateDoc);
+      res.send(result);
+    });
 
-// get task from individual board
-app.get('/boards/:boardId/tasks', async (req, res) => {
- 
-    const boardId = req.params.boardId;
-    const query = {
-      _id: new ObjectId(boardId)
-  };
-    // Find the board by ID
-    const board = await BoardCollection.findOne(query);
-// Extract and send tasks
-    const tasks = board.tasks || [];
-    res.json({ tasks })
-    // .send(tasks);
- 
-});
+    // get task from individual board
+    app.get('/boards/:boardId/tasks', async (req, res) => {
 
-// get task id from board
-app.get("/boardtask/:id", async (req, res) => {
+      const boardId = req.params.boardId;
+      const query = {
+        _id: new ObjectId(boardId)
+      };
+      // Find the board by ID
+      const board = await BoardCollection.findOne(query);
+      // Extract and send tasks
+      const tasks = board.tasks || [];
+      res.json({ tasks })
+      // .send(tasks);
 
-  const taskId = req.params.id;
-  
-  // Find the task by ID
-  const task = await BoardCollection.findOne({ "tasks._id": taskId });
+    });
 
-  if (!task) {
-    return res.status(404).json({ error: 'Task not found' });
-  }
+    // get task id from board
+    app.get("/boardtask/:id", async (req, res) => {
 
-  // Extract the specific task based on the ID
-  const specificTask = task.tasks.find(t => t._id.toString() === taskId);
+      const taskId = req.params.id;
 
-  if (!specificTask) {
-    return res.status(404).json({ error: 'Specific task not found' });
-  }
+      // Find the task by ID
+      const task = await BoardCollection.findOne({ "tasks._id": taskId });
 
-  res.send(specificTask);
+      if (!task) {
+        return res.status(404).json({ error: 'Task not found' });
+      }
 
-});
+      // Extract the specific task based on the ID
+      const specificTask = task.tasks.find(t => t._id.toString() === taskId);
 
-// delete task from the board
-// app.delete("/deletetaskFromBoard/:id", async (req, res) => {
-//   const taskId = req.params.id;
-//   console.log("deleted id from board", taskId);
-//   // Find the task by ID
-//   const task = await BoardCollection.findOne({ "tasks._id": taskId });
+      if (!specificTask) {
+        return res.status(404).json({ error: 'Specific task not found' });
+      }
 
-//   if (!task) {
-//     return res.status(404).json({ error: 'Task not found' });
-//   }
+      res.send(specificTask);
 
-//   // Extract the specific task based on the ID
-//   const specificTask = task.tasks.find(t => t._id.toString() === taskId);
-//   console.log("deleted id from board", specificTask);
-//   const result = await BoardCollection.deleteOne(specificTask);
+    });
+
+    // delete task from the board
+    // app.delete("/deletetaskFromBoard/:id", async (req, res) => {
+    //   const taskId = req.params.id;
+    //   console.log("deleted id from board", taskId);
+    //   // Find the task by ID
+    //   const task = await BoardCollection.findOne({ "tasks._id": taskId });
+
+    //   if (!task) {
+    //     return res.status(404).json({ error: 'Task not found' });
+    //   }
+
+    //   // Extract the specific task based on the ID
+    //   const specificTask = task.tasks.find(t => t._id.toString() === taskId);
+    //   console.log("deleted id from board", specificTask);
+    //   const result = await BoardCollection.deleteOne(specificTask);
 
 //   res.send(result);
 // });
@@ -510,37 +513,37 @@ app.delete("/deletetaskFromBoard/:id", async (req, res) => {
 res.send(result)
 });
 
-// update task status in the board
-app.patch("/updateStatusInBoard/:id", async (req, res) => {
-  const id = req.params.id;
-  const status = req.body.status;
+    // update task status in the board
+    app.patch("/updateStatusInBoard/:id", async (req, res) => {
+      const id = req.params.id;
+      const status = req.body.status;
 
-  const filter = {
-    "tasks._id": new ObjectId(id),
-  };
+      const filter = {
+        "tasks._id": new ObjectId(id),
+      };
 
-  const update = {
-    $set: {
-      "tasks.$.status": status,
-    },
-  };
+      const update = {
+        $set: {
+          "tasks.$.status": status,
+        },
+      };
 
-    const result = await BoardCollection.updateOne(filter, update);
-console.log("from update status from board",result)
-  res.send(result)
-});
+      const result = await BoardCollection.updateOne(filter, update);
+      console.log("from update status from board", result)
+      res.send(result)
+    });
 
 
- // update task in the board
+    // update task in the board
 
- app.get("/updatetaskInTheBoard/:id", async (req, res) => {
-  const id = req.params.id;
-  console.log(id);
-  const query = {"tasks._id": new ObjectId(id) };
-  const result = await BoardCollection.findOne(query);
-  console.log("update", result);
-  res.send(result);
-});
+    app.get("/updatetaskInTheBoard/:id", async (req, res) => {
+      const id = req.params.id;
+      console.log(id);
+      const query = { "tasks._id": new ObjectId(id) };
+      const result = await BoardCollection.findOne(query);
+      console.log("update", result);
+      res.send(result);
+    });
 
     app.patch("/updatetaskInTheBoard/:id", async (req, res) => {
       const id = req.params.id;
@@ -558,6 +561,88 @@ console.log("from update status from board",result)
       const result = await BoardCollection.updateOne(filter, updatedItem);
       res.send(result);
     });
+
+    app.post("/create-payment-intent", async (req, res) => {
+      const { price } = req.body;
+
+      const amount = parseInt(price * 100);
+
+      console.log(price, amount);
+
+      const paymentIntent = await stripe.paymentIntents.create({
+        amount: amount,
+        currency: "usd",
+
+        payment_method_types: ["card"],
+      });
+
+      res.send({
+        clientSecret: paymentIntent.client_secret,
+      })
+    })
+
+    app.patch("/addPackage/:email", async (req, res) => {
+      const email = req.params.email;
+      const currentPackage = req.body.packageInfo;
+      // console.log(currentPackage, "akhon package", email)
+
+      const query = { email: email };
+
+      const findUser = await UserCollection.findOne(query);
+
+      let currentPackageLimit = findUser?.currentPackageLimit;
+
+      if (currentPackageLimit) {
+        currentPackageLimit = currentPackageLimit;
+      }
+      else {
+        currentPackageLimit = 0;
+      }
+
+      const updateDoc = {
+        $set: {
+          currentPackage: currentPackage,
+          currentPackageLimit: parseInt(currentPackage?.split(" ")[0]) + currentPackageLimit
+        }
+      }
+
+      const result = await UserCollection.updateOne(query, updateDoc);
+
+      res.send(result);
+    })
+
+    app.get("/getPackageLimit/:email", async (req, res) => {
+      const email = req.params.email;
+
+      const query={email: email};
+
+     
+      const result= await UserCollection.findOne(query);
+      console.log(result);
+
+  
+      if(result){
+        const currentPackageLimit = result?.currentPackageLimit;
+        res.send({ currentPackageLimit });
+      }
+
+    })
+
+    app.patch("/decreaseLimit/:email",async(req,res)=>{
+      const email=req.params.email;
+      const query={email: email};
+
+      const updateDoc = {
+        $inc: {
+            currentPackageLimit: -1,
+        }
+    };
+
+    const result = await UserCollection.updateOne(query, updateDoc);
+
+    res.send(result);
+    })
+
     await client.db("admin").command({ ping: 1 });
     console.log(
       "Pinged your deployment. You successfully connected to MongoDB!"
